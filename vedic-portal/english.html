@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vedic Math Multiplication</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="corner top-left"></div>
+        <div class="corner top-right"></div>
+        <div class="corner bottom-left"></div>
+        <div class="corner bottom-right"></div>
+        
+        <div class="language-switcher">
+            <button class="lang-btn" onclick="window.location.href='english.html'">English</button>
+            <button class="lang-btn" onclick="window.location.href='marathi.html'">मराठी</button>
+            <button class="lang-btn" onclick="window.location.href='sanskrit.html'">संस्कृतम्</button>
+        </div>
+        
+        <h1>Vedic Math Multiplication</h1>
+        
+        <div class="method-selector">
+            <button class="method-btn active" data-method="nikhilam">Nikhilam Sutra</button>
+            <button class="method-btn" data-method="urdhva">Urdhva-Tiryagbhyam</button>
+            <button class="method-btn" data-method="adhik">Adhik Sutra</button>
+        </div>
+        
+        <div class="input-section">
+            <input type="number" id="num1" placeholder="Number 1" min="1">
+            <span style="font-size: 1.5rem;">×</span>
+            <input type="number" id="num2" placeholder="Number 2" min="1">
+        </div>
+        
+        <button class="calculate-btn">Show Vedic Method</button>
+        
+        <div class="animation-container" id="animationContainer">
+            <div style="text-align: center; padding: 50px; color: #8b4513; font-style: italic;">
+                Enter two numbers and click "Show Vedic Method"
+            </div>
+        </div>
+        
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" disabled>Previous Step</button>
+            <button class="nav-btn" id="nextBtn" disabled>Next Step</button>
+        </div>
+        
+        <div class="final-result" id="finalResult"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const methodBtns = document.querySelectorAll('.method-btn');
+            const calculateBtn = document.querySelector('.calculate-btn');
+            const animationContainer = document.getElementById('animationContainer');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const num1Input = document.getElementById('num1');
+            const num2Input = document.getElementById('num2');
+            const finalResultDiv = document.getElementById('finalResult');
+            
+            // State variables
+            let currentMethod = 'nikhilam';
+            let currentStep = 0;
+            let steps = [];
+            let finalAnswer = 0;
+            
+            // Method selection
+            methodBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    methodBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentMethod = this.dataset.method;
+                });
+            });
+            
+            // Calculate button
+            calculateBtn.addEventListener('click', function() {
+                const num1 = parseInt(num1Input.value);
+                const num2 = parseInt(num2Input.value);
+                
+                if (isNaN(num1) || isNaN(num2)) {
+                    alert('Please enter valid numbers in both fields');
+                    return;
+                }
+                
+                // Clear previous result
+                finalResultDiv.style.display = 'none';
+                
+                // Generate steps based on selected method
+                steps = generateSteps(currentMethod, num1, num2);
+                currentStep = 0;
+                renderStep();
+                
+                // Enable navigation
+                prevBtn.disabled = true;
+                nextBtn.disabled = steps.length <= 1;
+                
+                // Calculate and show final answer
+                finalAnswer = num1 * num2;
+                finalResultDiv.innerHTML = `${num1} × ${num2} = <strong>${finalAnswer}</strong>`;
+                finalResultDiv.style.display = 'block';
+                
+                // Animate final result
+                setTimeout(() => {
+                    finalResultDiv.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        finalResultDiv.style.transform = 'scale(1)';
+                    }, 300);
+                }, 100);
+            });
+            
+            // Navigation
+            prevBtn.addEventListener('click', function() {
+                if (currentStep > 0) {
+                    currentStep--;
+                    renderStep();
+                    nextBtn.disabled = false;
+                    if (currentStep === 0) {
+                        prevBtn.disabled = true;
+                    }
+                }
+            });
+            
+            nextBtn.addEventListener('click', function() {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    renderStep();
+                    prevBtn.disabled = false;
+                    if (currentStep === steps.length - 1) {
+                        nextBtn.disabled = true;
+                    }
+                }
+            });
+            
+            // Render current step
+            function renderStep() {
+                animationContainer.innerHTML = '';
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'step active';
+                stepDiv.innerHTML = steps[currentStep];
+                animationContainer.appendChild(stepDiv);
+                
+                // Simple animation
+                stepDiv.style.opacity = '0';
+                setTimeout(() => {
+                    stepDiv.style.opacity = '1';
+                }, 50);
+                
+                // Highlight pulse effect
+                const highlights = stepDiv.querySelectorAll('.highlight');
+                highlights.forEach((hl, i) => {
+                    setTimeout(() => {
+                        hl.style.backgroundColor = 'rgba(255, 215, 0, 0.7)';
+                        setTimeout(() => {
+                            hl.style.backgroundColor = 'rgba(255, 215, 0, 0.5)';
+                        }, 500);
+                    }, 300 + (i * 100));
+                });
+            }
+            
+            // Generate steps for different methods
+            function generateSteps(method, num1, num2) {
+                switch(method) {
+                    case 'nikhilam':
+                        return nikhilamMethod(num1, num2);
+                    case 'urdhva':
+                        return urdhvaMethod(num1, num2);
+                    case 'adhik':
+                        return adhikMethod(num1, num2);
+                    default:
+                        return nikhilamMethod(num1, num2);
+                }
+            }
+            
+            // Nikhilam Sutra Method (English)
+            function nikhilamMethod(num1, num2) {
+                const base = Math.pow(10, Math.max(num1.toString().length, num2.toString().length));
+                const diff1 = num1 - base;
+                const diff2 = num2 - base;
+                const productDiff = diff1 * diff2;
+                const leftSide = num1 + diff2;
+                const result = leftSide * base + productDiff;
+                
+                return [
+                    `<div>
+                        <h3><span class="step-number">1</span>Nikhilam Sutra: "All from 9 and last from 10"</h3>
+                        <div class="explanation">We'll multiply ${num1} × ${num2} using base ${base}.</div>
+                        <div class="math-expression">${num1} × ${num2}</div>
+                    </div>`,
+                    `<div>
+                        <h3><span class="step-number">2</span>Find Differences from Base</h3>
+                        <div class="math-expression">Base = ${base}</div>
+                        <div class="math-expression">${num1} - ${base} = <span class="highlight">${diff1}</span></div>
+                        <div class="math-expression">${num2} - ${base} = <span class="highlight">${diff2}</span></div>
+                        <div class="explanation">These are the differences from our base.</div>
+                    </div>`,
+                    `<div>
+                        <h3><span class="step-number">3</span>Multiply the Differences</h3>
+                        <div class="math-expression">${diff1} × ${diff2} = <span class="highlight">${productDiff}</span></div>
+                        <div class="explanation">This gives us the right part of our answer.</div>
+                    </div>`,
+                    `<div>
+                        <h3><span class="step-number">4</span>Cross Addition</h3>
+                        <div class="math-expression">${num1} + ${diff2} = <span class="highlight">${leftSide}</span></div>
+                        <div class="explanation">Or alternatively ${num2} + ${diff1} = ${leftSide}</div>
+                    </div>`,
+                    `<div>
+                        <h3><span class="step-number">5</span>Combine Results</h3>
+                        <div class="math-expression">(${leftSide} × ${base}) + ${productDiff} = ${result}</div>
+                        <div class="explanation">This gives us our final answer.</div>
+                    </div>`
+                ];
+            }
+            
+            // Urdhva-Tiryagbhyam Method (English)
+            function urdhvaMethod(num1, num2) {
+                const result = num1 * num2;
+                const str1 = num1.toString();
+                const str2 = num2.toString();
+                
+                return [
+                    `<div>
+                        <h3><span class="step-number">1</span>Urdhva-Tiryagbhyam: "Vertically and Crosswise"</h3>
+                        <div class="explanation">We'll multiply ${num1} × ${num2} using vertical and crosswise multiplication.</div>
+                        <div class="math-expression">${str1}<br>× ${str2}</div>
+                    </div>`,
+                    `<div>
+                        <h3><span class="step-number">2</span>Vertical and Crosswise Multiplication</h3>
+                        <div class="explanation">Multiply each digit and add the cross products:</div>
+                        <div class="math-expression">${num1}<br>× ${num2}<br>-----------<br>${result}</div>
+                    </div>`
+                ];
+            }
+            
+            // Adhik Sutra Method (English)
+            function adhikMethod(num1, num2) {
+                const result = num1 * num2;
+                return [
+                    `<div>
+                        <h3><span class="step-number">1</span>Adhik Sutra Method</h3>
+                        <div class="explanation">This method uses addition-based techniques for multiplication.</div>
+                        <div class="math-expression">${num1} × ${num2}</div>
+                    </div>`,
+                    `<div>
+                        <h3><span class="step-number">2</span>Calculation Steps</h3>
+                        <div class="explanation">Using addition and partitioning:</div>
+                        <div class="math-expression">${num1} × ${num2} = <span class="highlight">${result}</span></div>
+                    </div>`
+                ];
+            }
+        });
+    </script>
+</body>
+</html>
